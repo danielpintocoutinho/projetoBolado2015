@@ -59,7 +59,6 @@ public class BulletEntity implements Disposable
 	
 	public BulletEntity copy()
 	{
-		
 		return null;
 //		return new BulletEntity(modelInstance.copy(), btRigidBody.)
 	}
