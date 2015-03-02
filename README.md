@@ -35,4 +35,5 @@ In Window -> Preferences:
 
 To export from the Blender file provided in the root dir, simply press "p" to start the game engine. Aaaand you're done. 
 
-Note: No need to select objects or do anything special - just hit "p" and "esc" right away.  By now, the updated .bullet and .g3db files are already in the assets folder. No need to refresh or anything like that. Hit run on Eclipse and see the updates. 
+Note: No need to select objects or do anything special - just hit "p" and "esc" right away.  By now, the updated .bullet and .g3db files are already in the assets folder. No need to refresh or anything like that. Hit run on Eclipse and see the updates.
+If you're on linux, you'll have to add fbx-conv/ to your LD_LIBRARY_PATH. 
