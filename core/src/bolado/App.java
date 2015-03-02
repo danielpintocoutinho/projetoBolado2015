@@ -90,7 +90,7 @@ public class App implements ApplicationListener
 		Gdx.input.setInputProcessor(inputHandler);
 		
 		// Setup the contact listener
-//		contactProcessedListener = new BulletContactListener();
+		contactProcessedListener = new BulletContactListener();
 //		contactProcessedListener.bodies = AssetLoader.si.movableBodies;
 	}
 	
