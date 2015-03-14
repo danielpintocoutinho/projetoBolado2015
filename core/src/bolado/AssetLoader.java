@@ -1,5 +1,7 @@
 package bolado;
 
+import java.util.Hashtable;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -22,27 +24,24 @@ public class AssetLoader extends btBulletWorldImporter
 	public ModelInstance skyBox;
 	public AssetManager assets;
 	
-	public Array<trigger> triggers = new Array<trigger>();
-	public Array<BulletEntity> triggerEntities = new Array<BulletEntity>();
-	public int triggerCounter = 0;
+	//Here, the triggers:
+	public Hashtable<String,trigger> tHash = new Hashtable<String,trigger>();
 	public deathTrigger dt = new deathTrigger();
 	public logTrigger lt = new logTrigger();
 
 	public Array<btCollisionShape> shapes = new Array<btCollisionShape>();
 	public Array<BulletEntity> entities = new Array<BulletEntity>();
-	
-	//This will allow entity hiding (has to be subtracted by 1 om reading)
-	public Array<BulletEntity> otherEntities = new Array<BulletEntity>();
-	public int bodyIndexOnOtherEntitiesPlus = 0;
-
-	//public Array<btRigidBody> movableBodies = new Array<btRigidBody>();
 
 	public AssetLoader(btDynamicsWorld world)
 	{
 		super(world);
 
 		si = this;
-
+		
+		//Setup trigger hashtable:
+		tHash.put("deathTrigger", dt);
+		tHash.put("logTrigger", lt);
+		
 		// Load assets
 		String modelName = "scene.g3db";
 		assets = new AssetManager();
@@ -65,6 +64,15 @@ public class AssetLoader extends btBulletWorldImporter
 	public btRigidBody createRigidBody(boolean isDynamic, float mass, Matrix4 startTransform, btCollisionShape shape, String bodyName)
 	{
 		bodyName.replace(".", "_");
+		
+		String[] nameElements = bodyName.split(":");
+		boolean hasUserData = false;
+		if(nameElements.length == 2)
+		{
+			hasUserData = true;
+			bodyName.replace(nameElements[0], "");
+		}
+		
 		Gdx.app.log("Assets", "Loading -> " + bodyName);
 
 		if (bodyName.contains("char"))
@@ -76,8 +84,16 @@ public class AssetLoader extends btBulletWorldImporter
 
 			ModelInstance instance = new ModelInstance(model, bodyName, true, true);
 			instance.transform.set(startTransform);
-
+			
+			//Main player: contactCallbackFlag = 1
+			body.setUserValue(entities.size);
+			body.setContactCallbackFlag(2);
+			
 			BulletEntity entity = new BulletEntity(instance, body);
+			
+			//Main player: contactCallbackFlag = 1
+			body.setUserValue(entities.size);
+			body.setContactCallbackFlag(1);
 			entities.add(entity);
 			body.setFriction(.9f);
 			body.setRestitution(.2f);
@@ -88,24 +104,17 @@ public class AssetLoader extends btBulletWorldImporter
 			playerEntity = entity;
 
 			body.setLinearFactor(new Vector3(.9f, .9f, .9f));
-			//Main player userValue = 1
-			body.setUserValue(0);
 
 			return body;
 		}
-
-		if (bodyName.contains("trigger"))
+		//Applies trigger as user data:
+		if(hasUserData)
 		{
-			Gdx.app.log("Assets", "Found a trigger!");
+			Gdx.app.log("Assets", "Found a trigger! " + nameElements[0] );
 			
 			Vector3 localInertia = new Vector3();
 			if (mass > 0f) shape.calculateLocalInertia(mass, localInertia);
 			btRigidBody body = new btRigidBody(mass, null, shape, localInertia);
-			
-			//All triggers have user value = 100 + trigger id (temporary)
-			body.setUserValue(100 + triggerCounter);
-			Gdx.app.log("Assets", "Trigger userValue = " + (100 + triggerCounter));
-			triggerCounter++;
 			
 			shapes.add(shape);
 
@@ -113,23 +122,14 @@ public class AssetLoader extends btBulletWorldImporter
 			instance.transform.set(startTransform);
 
 			BulletEntity entity = new BulletEntity(instance, body);
+			
+			body.setUserValue(entities.size);
+			body.setContactCallbackFlag(0); //collides with all
 			entities.add(entity);
 			App.si.world.addRigidBody(body);
 			
-			//Add this entity to the trigger objects list
-			triggerEntities.add(entity);
+			entity.body.userData = tHash.get(nameElements[0]);
 			
-			
-			//Add the trigger to the trigger list. 
-			//The trigger in question shall be defined in some kind of level file:
-			
-			//Find out wich trigger to add...
-			if(bodyName.endsWith("2"))
-				triggers.add(dt);
-			else
-				triggers.add(lt);
-			
-
 			return body;
 		}
 		
@@ -142,13 +142,10 @@ public class AssetLoader extends btBulletWorldImporter
 		instance.transform.set(startTransform);
 
 		BulletEntity entity = new BulletEntity(instance, body);
+		
+		body.setUserValue(entities.size);
 		entities.add(entity);
 		App.si.world.addRigidBody(body);
-		
-		//all other objects have user value > 0
-		otherEntities.add(entity);
-		body.setUserValue(bodyIndexOnOtherEntitiesPlus+1);
-		bodyIndexOnOtherEntitiesPlus++;
 
 		return body;
 	}

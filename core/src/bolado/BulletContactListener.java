@@ -9,31 +9,43 @@ import com.badlogic.gdx.utils.Array;
 public class BulletContactListener extends ContactListener
 {
 	public Array<btRigidBody> bodies;
-
+	
+	/*
 	@Override
 	public void onContactStarted(btCollisionObject colObj0, btCollisionObject colObj1)
 	{
-		int value0 = colObj0.getUserValue();
-		int value1 = colObj1.getUserValue();
-		
-		if (value0 > 99)
+		if (colObj0.userData instanceof trigger )
 		{
 			Gdx.app.log("Trigger", "Touched!");
-			if(value1 == 0)
-			{
-				AssetLoader.si.triggers.get(value0 - 100).onCharCollision(AssetLoader.si.playerEntity);
-			}
 			
-			else
-				AssetLoader.si.triggers.get(value0 - 100).onMobCollision(AssetLoader.si.otherEntities.get(value1-1));
+			((trigger)(colObj0.userData)).onCollision(AssetLoader.si.entities.get(colObj1.getUserValue()));
+			
 		}
-		else if (value1 > 99)
+		else if (colObj1.userData instanceof trigger )
 		{
 			Gdx.app.log("Trigger", "Touched!");
-			if(value0 == 0)
-				AssetLoader.si.triggers.get(value0 - 100).onCharCollision(AssetLoader.si.playerEntity);
-			else
-				AssetLoader.si.triggers.get(value0 - 100).onMobCollision(AssetLoader.si.otherEntities.get(value0-1));
+			((trigger)(colObj1.userData)).onCollision(AssetLoader.si.entities.get(colObj0.getUserValue()));
+		}
+	}
+	*/
+	
+	//Using callback filtering with filters and flags. Callbacks only happen when match == true, being:
+	// boolean match = (A.filter & B.flag == B.flag); 
+	//Therefore, if B.flag == 0, callback is always called for that object. 
+	@Override
+	public void onContactStarted(btCollisionObject colObj0, boolean match0, btCollisionObject colObj1, boolean match1) 
+	{
+		if (colObj0.userData instanceof trigger )
+		{
+			Gdx.app.log("Trigger", "Touched!");
+			
+			((trigger)(colObj0.userData)).onCollision(AssetLoader.si.entities.get(colObj1.getUserValue()));
+			
+		}
+		else if (colObj1.userData instanceof trigger )
+		{
+			Gdx.app.log("Trigger", "Touched!");
+			((trigger)(colObj1.userData)).onCollision(AssetLoader.si.entities.get(colObj0.getUserValue()));
 		}
 	}
 }

@@ -7,7 +7,7 @@ public class deathTrigger implements trigger
 	{
 		
 	}
-	
+	/*
 	@Override
 	public void onCharCollision(BulletEntity ent) {
 		
@@ -18,6 +18,13 @@ public class deathTrigger implements trigger
 	public void onMobCollision(BulletEntity ent) {
 		
 		ent.hide();	
+	}
+	*/
+
+	@Override
+	public void onCollision(BulletEntity ent) {
+		ent.hide();	
+		
 	}
 }
 
